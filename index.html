@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"> <!-- Character encoding is set to UTF-8 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ensures the page is responsive to different screen sizes -->
+  <title>Emotion AI Videoconference</title> <!-- Page title -->
+  <link rel="icon" type="image/x-icon" href="https://static.wixstatic.com/media/2d7724_9055c6b480664b39b6d2259dc3a274fa%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/2d7724_9055c6b480664b39b6d2259dc3a274fa%7Emv2.png">
+  <style>
+    /* Styles for full-page iframe with no margins */
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden; /* Disables scrollbars */
+    }
+    iframe {
+      border: none; /* Removes iframe borders */
+      width: 100%; /* Makes iframe take the full width */
+      height: 100%; /* Makes iframe take the full height */
+      overflow: hidden; /* Disables scrollbars */
+    }
+  </style>
+</head>
+<body>
+  <!-- Iframe with specific permissions (camera, microphone, etc.) and no initial source URL -->
+  <iframe id="myIframe" src="" allow="camera; microphone; geolocation; fullscreen; clipboard-read; clipboard-write; display-capture"></iframe>
+
+  <script>
+    // Base URL of the parent
+    const baseUrl = "https://meet.morphcast.com/app";
+    // Parent information to be sent to the iframe when requested
+    const parentInfo = { 
+      'domain' : "https://meet.altasparq.com/", 
+      'logo_url': "https://meet.morphcast.com/app/logo-for-altasparq.png", 
+      'name': "altasparq", 
+      "meetings": "true", 
+      "analytics": "true", 
+      "settings": "true", 
+      "pricing_url": "https://www.morphcast.com/emotion-ai-videoconference-pricing/?base=embed",
+      "faq_url": "https://meet.altasparq.com/faq",
+      "support_url": "https://meet.altasparq.com/support",
+      "editHostPrivacy": "true", 
+      "usage": "true", 
+      "alerts": undefined, 
+      "privacy_url": "https://meet.altasparq.com/privacy",
+      "tou_url": "https://meet.altasparq.com/tou",
+      "dpa_url": "https://www.morphcast.com/emotion-ai-videoconference-dpa/?base=embed", 
+      "feedback_url": "https://meet.altasparq.com/feedback",
+      "report_abuse_url": "https://meet.altasparq.com/report_abuse"
+    };
+
+    // Function to handle messages sent from the iframe
+    const handlePostMessage = (event) => {
+
+      // Checks if the message is requesting the parent domain information
+      if (event.data === 'getParentInfo') {
+        // Responds by sending back the parent info object
+        event.source.postMessage({
+          type: 'parentInfo',
+          info: parentInfo, // Sends the parent information object
+        }, event.origin);
+      }
+      if (event.data.type === 'urlChanged') {
+        const fullUrl = event.data.url;
+
+        const relativeUrl = fullUrl.replace(baseUrl, '');
+        updateUrlParam('url_param', relativeUrl);
+      }
+    };
+
+    // Adds an event listener to listen for messages from the iframe
+    window.addEventListener('message', handlePostMessage);
+
+    function updateUrlParam(param, value) {
+      
+      const currentUrl = new URL(window.location);
+
+      const encodedValue = encode(value);
+
+      if (encodedValue) {
+        currentUrl.searchParams.set(param, encodedValue);
+        window.history.replaceState({}, '', currentUrl);
+      }
+    }
+
+    function encode(string) {
+      try {
+        return encodeURIComponent(string);
+      } catch (error) {
+        console.error("Error while encoding URL:", error);
+        return null;
+      }
+    }
+
+    function decode(string) {
+      try {
+        return decodeURIComponent(string);
+      } catch (error) {
+        console.error("Error while decoding URL:", error);
+        return null;
+      }
+    }
+
+    // Function executed when the page finishes loading
+    window.onload = function() {
+      // Gets the parent page URL
+      const parentUrl = window.location.href;
+
+      // Extracts the 'url_param' from the parent URL
+      const url = new URL(parentUrl);
+      const urlParam = url.searchParams.get('url_param');
+
+      // Checks if 'url_param' exists
+      if (urlParam) {
+        // Constructs the iframe URL using the 'url_param' and the base URL
+        console.log(baseUrl + decode(urlParam));
+        document.getElementById('myIframe').src = baseUrl + decode(urlParam);
+      } else {
+        // Loads the iframe with just the base URL if no parameter is found
+        document.getElementById('myIframe').src = baseUrl;
+      }
+    }
+  </script>
+</body>
+</html>
